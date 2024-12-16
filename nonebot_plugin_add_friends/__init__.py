@@ -16,6 +16,6 @@ __plugin_meta__ = PluginMetadata(
     ),
     type="application",
     config=Config,
-    homepage="",
+    homepage="https://github.com/hakunomiko/nonebot-plugin-add-friends",
     supported_adapters={"~onebot.v11"},
 )
