@@ -2,10 +2,13 @@ import json
 from pathlib import Path
 from typing import Optional
 from pydantic import BaseModel, Extra
+from nonebot import require
+require("nonebot_plugin_localstore")
+import nonebot_plugin_localstore as store
 
 
 class Config(BaseModel, extra=Extra.ignore):
-    friend_path: Path = Path("data/friend")
+    friend_path: Path = store.get_plugin_data_dir()
 
 
 class FriendRequest(BaseModel):

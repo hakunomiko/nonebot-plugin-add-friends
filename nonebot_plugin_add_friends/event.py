@@ -8,14 +8,14 @@ from .config import Config, FriendRequest, GroupInviteRequest, FriendRequestEnco
 plugin_config = get_plugin_config(Config)
 
 
-# 动态路径
-friend_file = plugin_config.friend_path / "friend_requests.json"
-group_invite_file = plugin_config.friend_path / "group_invites.json"
-
-
 # 确保目录存在
 if not plugin_config.friend_path.exists():
     plugin_config.friend_path.mkdir(parents=True, exist_ok=True)
+
+
+# 申请列表存储路径
+friend_file = plugin_config.friend_path / "friend_requests.json"
+group_invite_file = plugin_config.friend_path / "group_invites.json"
 
 
 async def get_friend_requests() -> List[FriendRequest]:
