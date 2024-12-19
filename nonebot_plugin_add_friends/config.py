@@ -1,8 +1,10 @@
 import json
 from pathlib import Path
 from typing import Optional
-from pydantic import BaseModel, Extra
+
 from nonebot import require
+from pydantic import BaseModel, Extra
+
 require("nonebot_plugin_localstore")
 import nonebot_plugin_localstore as store
 

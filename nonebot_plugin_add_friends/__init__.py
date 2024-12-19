@@ -1,7 +1,7 @@
 from nonebot.plugin import PluginMetadata
+
 from .config import Config
 from .matcher import *
-
 
 __plugin_meta__ = PluginMetadata(
     name="好友与群邀请管理",

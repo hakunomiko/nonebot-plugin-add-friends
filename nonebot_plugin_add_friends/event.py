@@ -1,8 +1,9 @@
 import json
 from typing import List
-from nonebot import get_plugin_config
-from .config import Config, FriendRequest, GroupInviteRequest, FriendRequestEncoder, GroupInviteRequestEncoder
 
+from nonebot import get_plugin_config
+
+from .config import Config, FriendRequest, FriendRequestEncoder, GroupInviteRequest, GroupInviteRequestEncoder
 
 # 加载插件配置
 plugin_config = get_plugin_config(Config)

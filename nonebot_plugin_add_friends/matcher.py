@@ -5,9 +5,9 @@ from nonebot.params import CommandArg
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import on_command, on_request
 from nonebot.rule import is_type
+
 from .config import FriendRequest, GroupInviteRequest
 from .event import get_friend_requests, get_group_invites, save_friend_requests, save_group_invites
-
 
 # 注册请求处理
 friend_add = on_request(priority=1)
@@ -24,10 +24,10 @@ async def handle_friend_add(bot: Bot, event: FriendRequestEvent):
     logger.info(f"收到好友请求: QQ号{add_qq}，昵称{add_nickname}，验证消息{add_comment}")
     # 保存好友邀请
     friend_request = FriendRequest(
-        add_id = add_qq,
-        add_comment = add_comment,
-        add_flag = add_flag,
-        add_nickname = add_nickname,
+        add_id=add_qq,
+        add_comment=add_comment,
+        add_flag=add_flag,
+        add_nickname=add_nickname,
     )
     friend_requests = await get_friend_requests()
     friend_requests.append(friend_request)
@@ -41,7 +41,7 @@ async def handle_friend_add(bot: Bot, event: FriendRequestEvent):
             f"QQ号：{add_qq}\n"
             f"验证信息：{add_comment}\n"
             f"使用命令“同意申请 {add_qq}”同意好友申请。\n"
-            f"使用命令“拒绝申请 {add_qq}”拒绝好友申请。"            
+            f"使用命令“拒绝申请 {add_qq}”拒绝好友申请。"
         )
         logger.info(f"向超级用户 {su} 发送好友请求消息")
         await bot.send_private_msg(user_id=int(su), message=msg)
@@ -58,16 +58,19 @@ async def handle_group_invite(bot: Bot, event: GroupRequestEvent):
     invite_flag = event.flag
     inviter_nickname: str = (await bot.get_stranger_info(user_id=event.user_id))["nickname"] or "未知昵称"
     inviter_groupname: str = (await bot.get_group_info(group_id=event.group_id))["group_name"] or "未知群名"
-    logger.info(f"收到群邀请：群号 {inviter_group_id}，群名称：{inviter_groupname}，邀请人 {inviter_id}，邀请人昵称{inviter_nickname}，验证信息：{invite_comment}")
+    logger.info(
+        f"收到群邀请：群号 {inviter_group_id}，群名称：{inviter_groupname}，"
+        f"邀请人 {inviter_id}，邀请人昵称{inviter_nickname}，验证信息：{invite_comment}"
+    )
     # 保存群邀请
     group_invite = GroupInviteRequest(
-        add_id = inviter_id,
-        add_group = inviter_group_id,
-        add_comment = invite_comment,
-        add_flag = invite_flag,
-        add_nickname = inviter_nickname,
-        add_groupname = inviter_groupname,
-        sub_type = event.sub_type,
+        add_id=inviter_id,
+        add_group=inviter_group_id,
+        add_comment=invite_comment,
+        add_flag=invite_flag,
+        add_nickname=inviter_nickname,
+        add_groupname=inviter_groupname,
+        sub_type=event.sub_type,
     )
     group_invites = await get_group_invites()
     group_invites.append(group_invite)
@@ -90,10 +93,16 @@ async def handle_group_invite(bot: Bot, event: GroupRequestEvent):
 
 # 创建命令 Matcher
 view_requests = on_command("查看申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True)
-confirm_request = on_command("同意申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True)
+confirm_request = on_command(
+    "同意申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True
+)
 reject_request = on_command("拒绝申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True)
-all_confirm_requests = on_command("同意全部申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True)
-all_reject_requests = on_command("拒绝全部申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True)
+all_confirm_requests = on_command(
+    "同意全部申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True
+)
+all_reject_requests = on_command(
+    "拒绝全部申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True
+)
 
 
 @view_requests.handle()
