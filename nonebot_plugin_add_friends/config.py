@@ -1,16 +1,7 @@
 import json
-from pathlib import Path
 from typing import Optional
 
-from nonebot import require
-from pydantic import BaseModel, Extra
-
-require("nonebot_plugin_localstore")
-import nonebot_plugin_localstore as store
-
-
-class Config(BaseModel, extra=Extra.ignore):
-    friend_path: Path = store.get_plugin_data_dir()
+from pydantic import BaseModel
 
 
 class FriendRequest(BaseModel):
@@ -31,14 +22,14 @@ class GroupInviteRequest(BaseModel):
 
 
 class FriendRequestEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, FriendRequest):
-            return obj.dict()
-        return super().default(obj)
+    def default(self, o):
+        if isinstance(o, FriendRequest):
+            return o.dict()
+        return super().default(o)
 
 
 class GroupInviteRequestEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, GroupInviteRequest):
-            return obj.dict()
-        return super().default(obj)
+    def default(self, o):
+        if isinstance(o, GroupInviteRequest):
+            return o.dict()
+        return super().default(o)

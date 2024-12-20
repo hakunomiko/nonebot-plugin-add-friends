@@ -1,22 +1,23 @@
 import json
+from pathlib import Path
 from typing import List
 
-from nonebot import get_plugin_config
+from nonebot import require
 
-from .config import Config, FriendRequest, FriendRequestEncoder, GroupInviteRequest, GroupInviteRequestEncoder
+require("nonebot_plugin_localstore")
+import nonebot_plugin_localstore as store
 
-# 加载插件配置
-plugin_config = get_plugin_config(Config)
-
+from .config import FriendRequest, FriendRequestEncoder, GroupInviteRequest, GroupInviteRequestEncoder
 
 # 确保目录存在
-if not plugin_config.friend_path.exists():
-    plugin_config.friend_path.mkdir(parents=True, exist_ok=True)
+friend_path: Path = store.get_plugin_data_dir()
+if not friend_path.exists():
+    friend_path.mkdir(parents=True, exist_ok=True)
 
 
 # 申请列表存储路径
-friend_file = plugin_config.friend_path / "friend_requests.json"
-group_invite_file = plugin_config.friend_path / "group_invites.json"
+friend_file = friend_path / "friend_requests.json"
+group_invite_file = friend_path / "group_invites.json"
 
 
 async def get_friend_requests() -> List[FriendRequest]:

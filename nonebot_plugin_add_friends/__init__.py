@@ -1,6 +1,5 @@
 from nonebot.plugin import PluginMetadata
 
-from .config import Config
 from .matcher import *
 
 __plugin_meta__ = PluginMetadata(
@@ -15,7 +14,6 @@ __plugin_meta__ = PluginMetadata(
         "   - 同意/拒绝全部申请：同意/拒绝全部好友申请和群聊邀请。"
     ),
     type="application",
-    config=Config,
     homepage="https://github.com/hakunomiko/nonebot-plugin-add-friends",
     supported_adapters={"~onebot.v11"},
 )
