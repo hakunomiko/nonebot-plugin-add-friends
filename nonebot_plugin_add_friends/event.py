@@ -7,7 +7,7 @@ from nonebot import require
 require("nonebot_plugin_localstore")
 import nonebot_plugin_localstore as store
 
-from .config import FriendRequest, FriendRequestEncoder, GroupInviteRequest, GroupInviteRequestEncoder
+from .config import FriendRequest, GroupInviteRequest
 
 # 确保目录存在
 friend_path: Path = store.get_plugin_data_dir()
@@ -36,7 +36,6 @@ async def save_friend_requests(friend_requests: List[FriendRequest]) -> None:
         json.dump(
             [request.dict() for request in friend_requests],
             f,
-            cls=FriendRequestEncoder,
             ensure_ascii=False,
             indent=4,
         )
@@ -58,7 +57,6 @@ async def save_group_invites(group_invites: List[GroupInviteRequest]) -> None:
         json.dump(
             [invite.dict() for invite in group_invites],
             f,
-            cls=GroupInviteRequestEncoder,
             ensure_ascii=False,
             indent=4,
         )
