@@ -20,7 +20,10 @@ async def handle_friend_add(bot: Bot, event: FriendRequestEvent):
     add_qq = event.user_id
     add_comment = event.comment or "无"
     add_flag = event.flag
-    add_nickname: str = (await bot.get_stranger_info(user_id=event.user_id))["nickname"] or "未知昵称"
+    try:
+        add_nickname: str = (await bot.get_stranger_info(user_id=event.user_id))["nickname"] or "未知昵称"
+    except Exception:
+        add_nickname: str = "未知昵称"
     logger.info(f"收到好友请求: QQ号{add_qq}，昵称{add_nickname}，验证消息{add_comment}")
     # 保存好友邀请
     friend_request = FriendRequest(
@@ -56,8 +59,14 @@ async def handle_group_invite(bot: Bot, event: GroupRequestEvent):
     inviter_group_id = event.group_id
     invite_comment = event.comment or "无"
     invite_flag = event.flag
-    inviter_nickname: str = (await bot.get_stranger_info(user_id=event.user_id))["nickname"] or "未知昵称"
-    inviter_groupname: str = (await bot.get_group_info(group_id=event.group_id))["group_name"] or "未知群名"
+    try:
+        inviter_nickname: str = (await bot.get_stranger_info(user_id=event.user_id))["nickname"] or "未知昵称"
+    except Exception:
+        inviter_nickname: str = "未知昵称"
+    try:
+        inviter_groupname: str = (await bot.get_group_info(group_id=event.group_id))["group_name"] or "未知群名"
+    except Exception:
+        inviter_groupname: str = "未知群名"
     logger.info(
         f"收到群邀请：群号 {inviter_group_id}，群名称：{inviter_groupname}，"
         f"邀请人 {inviter_id}，邀请人昵称{inviter_nickname}，验证信息：{invite_comment}"
