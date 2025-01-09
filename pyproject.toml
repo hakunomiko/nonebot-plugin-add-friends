@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-add-friends"
-version = "0.1.3"
+version = "0.1.4"
 description = "处理好友申请和群邀请，支持查看申请、手动同意/拒绝申请、同意/拒绝全部申请。"
 authors = ["hakunomiko <48401273+hakunomiko@users.noreply.github.com>"]
 readme = "README.md"
