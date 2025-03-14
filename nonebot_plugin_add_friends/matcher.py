@@ -1,4 +1,5 @@
 from nonebot.adapters.onebot.v11 import Bot, FriendRequestEvent, GroupRequestEvent, Message, PrivateMessageEvent
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
@@ -33,6 +34,11 @@ async def handle_friend_add(bot: Bot, event: FriendRequestEvent):
         add_nickname=add_nickname,
     )
     friend_requests = await get_friend_requests()
+    for i, req in enumerate(friend_requests.copy()):
+        if req.add_id == add_qq:
+            friend_requests.pop(i)
+            logger.debug(f"移除已存在的好友申请: QQ号{add_qq}")
+            break
     friend_requests.append(friend_request)
     await save_friend_requests(friend_requests)
     # 通知超级用户
@@ -82,6 +88,11 @@ async def handle_group_invite(bot: Bot, event: GroupRequestEvent):
         sub_type=event.sub_type,
     )
     group_invites = await get_group_invites()
+    for i, invite in enumerate(group_invites.copy()):
+        if invite.add_group == inviter_group_id:
+            group_invites.pop(i)
+            logger.debug(f"移除已存在的群邀请: 群号{inviter_group_id}")
+            break
     group_invites.append(group_invite)
     await save_group_invites(group_invites)
     # 通知超级用户
@@ -111,6 +122,9 @@ all_confirm_requests = on_command(
 )
 all_reject_requests = on_command(
     "拒绝全部申请", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True
+)
+clear_requests = on_command(
+    "清空申请列表", rule=is_type(PrivateMessageEvent), permission=SUPERUSER, priority=1, block=True
 )
 
 
@@ -197,16 +211,28 @@ async def handle_all_confirm_requests(bot: Bot, matcher: Matcher):
         await matcher.finish("当前没有待处理的好友申请或群邀请。")
     confirm_friend_details = []
     confirm_group_details = []
+    failed_friend_details = []
+    failed_group_details = []
     # 处理好友申请
     for req in friend_requests.copy():
-        await bot.set_friend_add_request(flag=req.add_flag, approve=True)
-        confirm_friend_details.append(f"昵称：{req.add_nickname}，QQ号：{req.add_id}")
-        friend_requests.remove(req)
+        try:
+            await bot.set_friend_add_request(flag=req.add_flag, approve=True)
+            confirm_friend_details.append(f"昵称：{req.add_nickname}，QQ号：{req.add_id}")
+        except ActionFailed as e:
+            logger.warning(f"同意好友申请失败：QQ号 {req.add_id}，错误：{e!s}")
+            failed_friend_details.append(f"昵称：{req.add_nickname}，QQ号：{req.add_id}，错误：{e!s}")
+        finally:
+            friend_requests.remove(req)
     # 处理群邀请
     for invite in group_invites.copy():
-        await bot.set_group_add_request(flag=invite.add_flag, sub_type=invite.sub_type, approve=True)
-        confirm_group_details.append(f"群号：{invite.add_group}，群名称：{invite.add_groupname}")
-        group_invites.remove(invite)
+        try:
+            await bot.set_group_add_request(flag=invite.add_flag, sub_type=invite.sub_type, approve=True)
+            confirm_group_details.append(f"群号：{invite.add_group}，群名称：{invite.add_groupname}")
+        except ActionFailed as e:
+            logger.warning(f"同意群邀请失败：群号 {invite.add_group}，错误：{e!s}")
+            failed_group_details.append(f"群号：{invite.add_group}，群名称：{invite.add_groupname}，错误：{e!s}")
+        finally:
+            group_invites.remove(invite)
     # 保存更新后的空列表
     await save_friend_requests([])
     await save_group_invites([])
@@ -216,6 +242,12 @@ async def handle_all_confirm_requests(bot: Bot, matcher: Matcher):
         response += "同意的好友申请：\n" + "\n".join(confirm_friend_details) + "\n"
     if confirm_group_details:
         response += "同意的群邀请：\n" + "\n".join(confirm_group_details)
+    if failed_friend_details or failed_group_details:
+        response += "\n同意失败的请求如下：\n"
+        if failed_friend_details:
+            response += "好友申请：\n" + "\n".join(failed_friend_details) + "\n"
+        if failed_group_details:
+            response += "群邀请：\n" + "\n".join(failed_group_details)
     await matcher.finish(response)
 
 
@@ -228,16 +260,28 @@ async def handle_all_reject_requests(bot: Bot, matcher: Matcher):
         await matcher.finish("当前没有待处理的好友申请或群邀请。")
     reject_friend_details = []
     reject_group_details = []
+    failed_friend_details = []
+    failed_group_details = []
     # 处理好友申请
     for req in friend_requests.copy():
-        await bot.set_friend_add_request(flag=req.add_flag, approve=False)
-        reject_friend_details.append(f"昵称：{req.add_nickname}，QQ号：{req.add_id}")
-        friend_requests.remove(req)
+        try:
+            await bot.set_friend_add_request(flag=req.add_flag, approve=False)
+            reject_friend_details.append(f"昵称：{req.add_nickname}，QQ号：{req.add_id}")
+        except ActionFailed as e:
+            logger.warning(f"拒绝好友申请失败：QQ号 {req.add_id}，错误：{e!s}")
+            failed_friend_details.append(f"昵称：{req.add_nickname}，QQ号：{req.add_id}，错误：{e!s}")
+        finally:
+            friend_requests.remove(req)
     # 处理群邀请
     for invite in group_invites.copy():
-        await bot.set_group_add_request(flag=invite.add_flag, sub_type=invite.sub_type, approve=False)
-        reject_group_details.append(f"群号：{invite.add_group}")
-        group_invites.remove(invite)
+        try:
+            await bot.set_group_add_request(flag=invite.add_flag, sub_type=invite.sub_type, approve=False)
+            reject_group_details.append(f"群号：{invite.add_group}，群名称：{invite.add_groupname}")
+        except ActionFailed as e:
+            logger.warning(f"拒绝群邀请失败：群号 {invite.add_group}，错误：{e!s}")
+            failed_group_details.append(f"群号：{invite.add_group}，群名称：{invite.add_groupname}，错误：{e!s}")
+        finally:
+            group_invites.remove(invite)
     # 保存更新后的空列表
     await save_friend_requests([])
     await save_group_invites([])
@@ -247,4 +291,29 @@ async def handle_all_reject_requests(bot: Bot, matcher: Matcher):
         response += "拒绝的好友申请：\n" + "\n".join(reject_friend_details) + "\n"
     if reject_group_details:
         response += "拒绝的群邀请：\n" + "\n".join(reject_group_details)
+    if failed_friend_details or failed_group_details:
+        response += "\n拒绝失败的请求如下：\n"
+        if failed_friend_details:
+            response += "好友申请：\n" + "\n".join(failed_friend_details) + "\n"
+        if failed_group_details:
+            response += "群邀请：\n" + "\n".join(failed_group_details)
     await matcher.finish(response)
+
+
+@clear_requests.handle()
+async def handle_clear_requests(matcher: Matcher):
+    """清空所有待处理的好友申请和群邀请"""
+    # 获取当前的申请列表
+    friend_requests = await get_friend_requests()
+    group_invites = await get_group_invites()
+
+    # 检查是否有待处理的申请
+    if not friend_requests and not group_invites:
+        await matcher.finish("当前没有待处理的好友申请或群邀请。")
+
+    # 清空列表
+    await save_friend_requests([])
+    await save_group_invites([])
+
+    # 返回简单的响应消息
+    await matcher.finish("已清空申请列表。")
